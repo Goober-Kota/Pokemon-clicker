@@ -9,7 +9,8 @@ let shinyCount = 0; // Track shiny Pokémon
 const achievements = {
   shiny10: false, // Catch 10 shiny Pokémon
   shinyLegendary: false, // Catch a shiny legendary
-  arceusCaught: false // Catch Arceus
+  arceusCaught: false, // Catch Arceus
+  shinyArceusCaught: false // Catch shiny Arceus
 };
 
 // Pokémon Rarity System
@@ -65,6 +66,64 @@ const pokedexDisplay = document.getElementById("pokedex");
 const shinyCounter = document.getElementById("shiny-counter");
 const achievementsDisplay = document.getElementById("achievements");
 
+// Save Game
+function saveGame() {
+  const gameState = {
+    pokecoins,
+    autoClicksPerSecond,
+    clickMultiplier,
+    autoClickerCost,
+    multiplierCost,
+    pokedex,
+    shinyCount,
+    achievements
+  };
+  localStorage.setItem("pokemonClickerSave", JSON.stringify(gameState));
+  console.log("Game saved!");
+}
+
+// Load Game
+function loadGame() {
+  const savedGame = localStorage.getItem("pokemonClickerSave");
+  if (savedGame) {
+    const gameState = JSON.parse(savedGame);
+    pokecoins = gameState.pokecoins;
+    autoClicksPerSecond = gameState.autoClicksPerSecond;
+    clickMultiplier = gameState.clickMultiplier;
+    autoClickerCost = gameState.autoClickerCost;
+    multiplierCost = gameState.multiplierCost;
+    Object.assign(pokedex, gameState.pokedex);
+    shinyCount = gameState.shinyCount;
+    Object.assign(achievements, gameState.achievements);
+
+    // Update UI
+    pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
+    autoClickerButton.textContent = `🤖 Buy Auto-Clicker (Cost: ${autoClickerCost})`;
+    multiplierButton.textContent = `✨ Buy Click Multiplier (Cost: ${multiplierCost})`;
+    shinyCounter.textContent = `✨ Shinies Caught: ${shinyCount}`;
+    renderPokedex();
+    renderAchievements(); // Render achievements when the game loads
+    console.log("Game loaded!");
+  }
+}
+
+// Render Achievements
+function renderAchievements() {
+  achievementsDisplay.innerHTML = ""; // Clear existing achievements
+  if (achievements.shiny10) {
+    achievementsDisplay.innerHTML += `<div>🎉 Achievement Unlocked: Catch 10 Shiny Pokémon!</div>`;
+  }
+  if (achievements.shinyLegendary) {
+    achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch a Shiny Legendary!</div>`;
+  }
+  if (achievements.arceusCaught) {
+    achievementsDisplay.innerHTML += `<div>🌈 Achievement Unlocked: Catch Arceus, the God of Pokémon!</div>`;
+  }
+  if (achievements.shinyArceusCaught) {
+    achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch a Shiny Arceus!</div>`;
+  }
+}
+
 // Catch Pokémon
 function catchPokemon() {
   const roll = Math.random() * totalChance; // Roll based on total chance
@@ -90,16 +149,20 @@ function catchPokemon() {
         shinyCount++;
         shinyCounter.textContent = `✨ Shinies Caught: ${shinyCount}`;
         animateShiny();
-        checkAchievements(pokemon.rarity);
+        checkAchievements(pokemon.rarity, pokemon.name);
       }
 
       // Handle Arceus catch
       if (pokemon.name === "🌟 Arceus") {
         achievements.arceusCaught = true;
-        achievementsDisplay.innerHTML += `<div>🌈 Achievement Unlocked: Catch Arceus, the God of Pokémon!</div>`;
+        if (isShiny) {
+          achievements.shinyArceusCaught = true;
+        }
+        renderAchievements(); // Re-render achievements to show new unlocks
       }
 
       console.log(`Caught a ${pokemonName}! Earned ${reward} Pokécoins.`);
+      saveGame(); // Save the game after each catch
       break;
     }
   }
@@ -137,14 +200,18 @@ function animateShiny() {
 }
 
 // Check Achievements
-function checkAchievements(rarity) {
+function checkAchievements(rarity, pokemonName) {
   if (shinyCount >= 10 && !achievements.shiny10) {
     achievements.shiny10 = true;
-    achievementsDisplay.innerHTML += `<div>🎉 Achievement Unlocked: Catch 10 Shiny Pokémon!</div>`;
+    renderAchievements(); // Re-render achievements to show new unlocks
   }
   if (rarity === "Legendary" && !achievements.shinyLegendary) {
     achievements.shinyLegendary = true;
-    achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch a Shiny Legendary!</div>`;
+    renderAchievements(); // Re-render achievements to show new unlocks
+  }
+  if (pokemonName === "🌟 Arceus" && !achievements.shinyArceusCaught) {
+    achievements.shinyArceusCaught = true;
+    renderAchievements(); // Re-render achievements to show new unlocks
   }
 }
 
@@ -157,6 +224,7 @@ function buyAutoClicker() {
     pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
     autoClickerButton.textContent = `🤖 Buy Auto-Clicker (Cost: ${autoClickerCost})`;
     console.log("Auto-clicker purchased!");
+    saveGame(); // Save the game after purchase
   }
 }
 
@@ -169,6 +237,7 @@ function buyClickMultiplier() {
     pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
     multiplierButton.textContent = `✨ Buy Click Multiplier (Cost: ${multiplierCost})`;
     console.log("Click multiplier purchased!");
+    saveGame(); // Save the game after purchase
   }
 }
 
@@ -176,9 +245,13 @@ function buyClickMultiplier() {
 setInterval(() => {
   pokecoins += autoClicksPerSecond * clickMultiplier;
   pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
+  saveGame(); // Save the game periodically
 }, 1000);
 
 // Event Listeners
 clickButton.addEventListener("click", catchPokemon);
 autoClickerButton.addEventListener("click", buyAutoClicker);
 multiplierButton.addEventListener("click", buyClickMultiplier);
+
+// Load the game when the page loads
+window.addEventListener("load", loadGame);
