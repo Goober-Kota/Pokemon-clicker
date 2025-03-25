@@ -5,12 +5,17 @@ let clickMultiplier = 1;
 let autoClickerCost = 50;
 let multiplierCost = 100;
 const pokedex = {};
-let shinyCount = 0; // Track shiny Pokémon
+let shinyCount = 0;
+
 const achievements = {
-  shiny10: false, // Catch 10 shiny Pokémon
-  shinyLegendary: false, // Catch a shiny legendary
-  arceusCaught: false, // Catch Arceus
-  shinyArceusCaught: false // Catch shiny Arceus
+  shiny10: false,
+  shiny100: false,
+  shiny1000: false,
+  shinyLegendary: false,
+  arceusCaught: false,
+  shinyArceusCaught: false,
+  dex50: false,
+  dex100: false
 };
 
 // Pokémon Rarity System
@@ -21,27 +26,47 @@ const pokemonRarities = [
   { name: "🐛 Caterpie", rarity: "Common", chance: 50, reward: 1 },
   { name: "🐞 Weedle", rarity: "Common", chance: 50, reward: 1 },
   { name: "🦇 Zubat", rarity: "Common", chance: 50, reward: 1 },
+  { name: "🐍 Ekans", rarity: "Common", chance: 50, reward: 1 },
+  { name: "🐟 Magikarp", rarity: "Common", chance: 50, reward: 1 },
+  { name: "🐢 Squirtle", rarity: "Common", chance: 50, reward: 1 },
+  { name: "🐭 Pichu", rarity: "Common", chance: 50, reward: 1 },
+  { name: "🦔 Sandshrew", rarity: "Common", chance: 50, reward: 1 },
 
   // Uncommon Pokémon
   { name: "🌱 Bulbasaur", rarity: "Uncommon", chance: 30, reward: 5 },
   { name: "🔥 Charmander", rarity: "Uncommon", chance: 30, reward: 5 },
   { name: "💧 Squirtle", rarity: "Uncommon", chance: 30, reward: 5 },
-  { name: "🐍 Ekans", rarity: "Uncommon", chance: 30, reward: 5 },
-  { name: "🐟 Magikarp", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🐸 Poliwag", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🦉 Hoothoot", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🐿️ Sentret", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🦊 Vulpix", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🐈 Meowth", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🐝 Combee", rarity: "Uncommon", chance: 30, reward: 5 },
+  { name: "🦋 Butterfree", rarity: "Uncommon", chance: 30, reward: 5 },
 
   // Rare Pokémon
   { name: "⚡ Pikachu", rarity: "Rare", chance: 15, reward: 20 },
   { name: "🎤 Jigglypuff", rarity: "Rare", chance: 15, reward: 20 },
-  { name: "🦊 Vulpix", rarity: "Rare", chance: 15, reward: 20 },
-  { name: "🌀 Dratini", rarity: "Rare", chance: 15, reward: 20 },
-  { name: "🦉 Hoothoot", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🦎 Charmeleon", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🌿 Ivysaur", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🐢 Wartortle", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🦅 Pidgeotto", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🐍 Arbok", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🦇 Golbat", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🦎 Treecko", rarity: "Rare", chance: 15, reward: 20 },
+  { name: "🔥 Torchic", rarity: "Rare", chance: 15, reward: 20 },
 
   // Epic Pokémon
   { name: "🌿 Chikorita", rarity: "Epic", chance: 4, reward: 100 },
   { name: "🌋 Cyndaquil", rarity: "Epic", chance: 4, reward: 100 },
   { name: "🌊 Totodile", rarity: "Epic", chance: 4, reward: 100 },
-  { name: "🦎 Treecko", rarity: "Epic", chance: 4, reward: 100 },
-  { name: "🔥 Torchic", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🦎 Grovyle", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🔥 Blaziken", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🌊 Marshtomp", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🦉 Noctowl", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🦊 Ninetales", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🐉 Dragonair", rarity: "Epic", chance: 4, reward: 100 },
+  { name: "🦋 Beautifly", rarity: "Epic", chance: 4, reward: 100 },
 
   // Legendary Pokémon
   { name: "🛸 Mewtwo", rarity: "Legendary", chance: 1, reward: 500 },
@@ -49,9 +74,21 @@ const pokemonRarities = [
   { name: "🌌 Lugia", rarity: "Legendary", chance: 1, reward: 500 },
   { name: "🌠 Ho-Oh", rarity: "Legendary", chance: 1, reward: 500 },
   { name: "🌀 Suicune", rarity: "Legendary", chance: 1, reward: 500 },
+  { name: "⚡ Zapdos", rarity: "Legendary", chance: 1, reward: 500 },
+  { name: "🔥 Moltres", rarity: "Legendary", chance: 1, reward: 500 },
+  { name: "❄️ Articuno", rarity: "Legendary", chance: 1, reward: 500 },
+  { name: "⏳ Dialga", rarity: "Legendary", chance: 1, reward: 500 },
+  { name: "🌍 Groudon", rarity: "Legendary", chance: 1, reward: 500 },
 
-  // Arceus (God of Pokémon)
-  { name: "🌟 Arceus", rarity: "God", chance: 0.1, reward: 10000 } // 0.1% chance
+  // Mythical Pokémon
+  { name: "🌈 Mew", rarity: "Mythical", chance: 0.5, reward: 1000 },
+  { name: "🎶 Celebi", rarity: "Mythical", chance: 0.5, reward: 1000 },
+  { name: "🌙 Darkrai", rarity: "Mythical", chance: 0.5, reward: 1000 },
+  { name: "☀️ Shaymin", rarity: "Mythical", chance: 0.5, reward: 1000 },
+  { name: "🌑 Deoxys", rarity: "Mythical", chance: 0.5, reward: 1000 },
+
+  // God Pokémon
+  { name: "🌟 Arceus", rarity: "God", chance: 0.1, reward: 10000 }
 ];
 
 // Calculate total chance for normalization
@@ -79,7 +116,6 @@ function saveGame() {
     achievements
   };
   localStorage.setItem("pokemonClickerSave", JSON.stringify(gameState));
-  console.log("Game saved!");
 }
 
 // Load Game
@@ -96,55 +132,75 @@ function loadGame() {
     shinyCount = gameState.shinyCount;
     Object.assign(achievements, gameState.achievements);
 
-    // Update UI
     pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
     autoClickerButton.textContent = `🤖 Buy Auto-Clicker (Cost: ${autoClickerCost})`;
     multiplierButton.textContent = `✨ Buy Click Multiplier (Cost: ${multiplierCost})`;
     shinyCounter.textContent = `✨ Shinies Caught: ${shinyCount}`;
     renderPokedex();
-    renderAchievements(); // Render achievements when the game loads
-    console.log("Game loaded!");
+    renderAchievements();
   }
+}
+
+// Show Notification
+function showNotification(message) {
+  const notification = document.createElement("div");
+  notification.className = "notification";
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add("fade-out");
+    setTimeout(() => notification.remove(), 1000);
+  }, 3000);
 }
 
 // Render Achievements
 function renderAchievements() {
-  achievementsDisplay.innerHTML = ""; // Clear existing achievements
+  achievementsDisplay.innerHTML = "";
   if (achievements.shiny10) {
     achievementsDisplay.innerHTML += `<div>🎉 Achievement Unlocked: Catch 10 Shiny Pokémon!</div>`;
   }
+  if (achievements.shiny100) {
+    achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch 100 Shiny Pokémon!</div>`;
+  }
+  if (achievements.shiny1000) {
+    achievementsDisplay.innerHTML += `<div>🌈 Achievement Unlocked: Catch 1000 Shiny Pokémon!</div>`;
+  }
   if (achievements.shinyLegendary) {
-    achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch a Shiny Legendary!</div>`;
+    achievementsDisplay.innerHTML += `<div>✨ Achievement Unlocked: Catch a Shiny Legendary!</div>`;
   }
   if (achievements.arceusCaught) {
-    achievementsDisplay.innerHTML += `<div>🌈 Achievement Unlocked: Catch Arceus, the God of Pokémon!</div>`;
+    achievementsDisplay.innerHTML += `<div>👑 Achievement Unlocked: Catch Arceus, the God of Pokémon!</div>`;
   }
   if (achievements.shinyArceusCaught) {
     achievementsDisplay.innerHTML += `<div>🌟 Achievement Unlocked: Catch a Shiny Arceus!</div>`;
+  }
+  if (achievements.dex50) {
+    achievementsDisplay.innerHTML += `<div>📘 Achievement Unlocked: Catch 50 Unique Pokémon!</div>`;
+  }
+  if (achievements.dex100) {
+    achievementsDisplay.innerHTML += `<div>📚 Achievement Unlocked: Catch 100 Unique Pokémon!</div>`;
   }
 }
 
 // Catch Pokémon
 function catchPokemon() {
-  const roll = Math.random() * totalChance; // Roll based on total chance
+  const roll = Math.random() * totalChance;
   let cumulativeChance = 0;
 
   for (const pokemon of pokemonRarities) {
     cumulativeChance += pokemon.chance;
     if (roll < cumulativeChance) {
-      // Check if the Pokémon is shiny
-      const isShiny = pokemon.rarity === "Legendary" || pokemon.rarity === "God" ? Math.random() < 0.25 : Math.random() < 0.5; // 25% for legendary/God, 50% for others
-      const shinyMultiplier = isShiny ? 2 : 1; // Double rewards for shiny
+      const isShiny = pokemon.rarity === "Legendary" || pokemon.rarity === "God" || pokemon.rarity === "Mythical" ? 
+        Math.random() < 0.25 : Math.random() < 0.5;
+      const shinyMultiplier = isShiny ? 2 : 1;
       const reward = pokemon.reward * clickMultiplier * shinyMultiplier;
-
-      // Update Pokémon name for shiny
       const pokemonName = isShiny ? `✨ ${pokemon.name} ✨` : pokemon.name;
 
       pokecoins += reward;
       updatePokedex(pokemonName);
       pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
 
-      // Handle shiny Pokémon
       if (isShiny) {
         shinyCount++;
         shinyCounter.textContent = `✨ Shinies Caught: ${shinyCount}`;
@@ -152,17 +208,15 @@ function catchPokemon() {
         checkAchievements(pokemon.rarity, pokemon.name);
       }
 
-      // Handle Arceus catch
       if (pokemon.name === "🌟 Arceus") {
         achievements.arceusCaught = true;
         if (isShiny) {
           achievements.shinyArceusCaught = true;
         }
-        renderAchievements(); // Re-render achievements to show new unlocks
+        renderAchievements();
       }
 
-      console.log(`Caught a ${pokemonName}! Earned ${reward} Pokécoins.`);
-      saveGame(); // Save the game after each catch
+      saveGame();
       break;
     }
   }
@@ -183,8 +237,59 @@ function renderPokedex() {
   pokedexDisplay.innerHTML = "";
   for (const [name, count] of Object.entries(pokedex)) {
     const entry = document.createElement("div");
-    entry.textContent = `${name}: ${count} caught`;
+    let rarityColor = "";
+    
+    const pokemon = pokemonRarities.find(p => p.name === name.replace(/✨/g, "").trim());
+    if (pokemon) {
+      switch(pokemon.rarity) {
+        case "Common": rarityColor = "gray"; break;
+        case "Uncommon": rarityColor = "green"; break;
+        case "Rare": rarityColor = "blue"; break;
+        case "Epic": rarityColor = "purple"; break;
+        case "Legendary": rarityColor = "orange"; break;
+        case "Mythical": rarityColor = "pink"; break;
+        case "God": rarityColor = "gold"; break;
+      }
+    }
+    
+    entry.innerHTML = `<span style="color:${rarityColor}">${name}</span>: ${count} caught`;
     pokedexDisplay.appendChild(entry);
+  }
+}
+
+// Check Achievements
+function checkAchievements(rarity, pokemonName) {
+  const uniquePokemonCaught = Object.keys(pokedex).length;
+  
+  if (shinyCount >= 10 && !achievements.shiny10) {
+    achievements.shiny10 = true;
+    showNotification("🎉 Achievement Unlocked: Catch 10 Shiny Pokémon!");
+    renderAchievements();
+  }
+  if (shinyCount >= 100 && !achievements.shiny100) {
+    achievements.shiny100 = true;
+    showNotification("🌟 Achievement Unlocked: Catch 100 Shiny Pokémon!");
+    renderAchievements();
+  }
+  if (shinyCount >= 1000 && !achievements.shiny1000) {
+    achievements.shiny1000 = true;
+    showNotification("🌈 Achievement Unlocked: Catch 1000 Shiny Pokémon!");
+    renderAchievements();
+  }
+  if (rarity === "Legendary" && !achievements.shinyLegendary) {
+    achievements.shinyLegendary = true;
+    showNotification("✨ Achievement Unlocked: Catch a Shiny Legendary!");
+    renderAchievements();
+  }
+  if (uniquePokemonCaught >= 50 && !achievements.dex50) {
+    achievements.dex50 = true;
+    showNotification("📘 Achievement Unlocked: Catch 50 Unique Pokémon!");
+    renderAchievements();
+  }
+  if (uniquePokemonCaught >= 100 && !achievements.dex100) {
+    achievements.dex100 = true;
+    showNotification("📚 Achievement Unlocked: Catch 100 Unique Pokémon!");
+    renderAchievements();
   }
 }
 
@@ -199,22 +304,6 @@ function animateShiny() {
   }, 200);
 }
 
-// Check Achievements
-function checkAchievements(rarity, pokemonName) {
-  if (shinyCount >= 10 && !achievements.shiny10) {
-    achievements.shiny10 = true;
-    renderAchievements(); // Re-render achievements to show new unlocks
-  }
-  if (rarity === "Legendary" && !achievements.shinyLegendary) {
-    achievements.shinyLegendary = true;
-    renderAchievements(); // Re-render achievements to show new unlocks
-  }
-  if (pokemonName === "🌟 Arceus" && !achievements.shinyArceusCaught) {
-    achievements.shinyArceusCaught = true;
-    renderAchievements(); // Re-render achievements to show new unlocks
-  }
-}
-
 // Buy Auto-Clicker
 function buyAutoClicker() {
   if (pokecoins >= autoClickerCost) {
@@ -223,8 +312,7 @@ function buyAutoClicker() {
     autoClickerCost *= 2;
     pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
     autoClickerButton.textContent = `🤖 Buy Auto-Clicker (Cost: ${autoClickerCost})`;
-    console.log("Auto-clicker purchased!");
-    saveGame(); // Save the game after purchase
+    saveGame();
   }
 }
 
@@ -236,8 +324,7 @@ function buyClickMultiplier() {
     multiplierCost *= 2;
     pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
     multiplierButton.textContent = `✨ Buy Click Multiplier (Cost: ${multiplierCost})`;
-    console.log("Click multiplier purchased!");
-    saveGame(); // Save the game after purchase
+    saveGame();
   }
 }
 
@@ -245,7 +332,7 @@ function buyClickMultiplier() {
 setInterval(() => {
   pokecoins += autoClicksPerSecond * clickMultiplier;
   pokecoinsDisplay.textContent = `🪙 Pokécoins: ${pokecoins}`;
-  saveGame(); // Save the game periodically
+  saveGame();
 }, 1000);
 
 // Event Listeners
